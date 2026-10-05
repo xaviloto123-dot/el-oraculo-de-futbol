@@ -1,27 +1,24 @@
-# El Oráculo de Fútbol
+# El Oráculo de Fútbol — Versión 2
 
-Web/PWA de estadísticas y predicciones educativas de partidos.
+Web educativa de estadísticas de fútbol para LaLiga.
 
-## Estructura
+## Incluye
+- Clasificación real de LaLiga.
+- Todos los equipos obtenidos desde la API.
+- Escudos oficiales devueltos por los datos de cada equipo.
+- Predicción estadística educativa sin apuestas.
+- Estadísticas separadas de local y visitante.
+- Forma reciente basada en los últimos 5 partidos disponibles.
+- Comparación de ataque, defensa, forma y puntos por partido.
+- Gráficos visuales de rendimiento.
+- Historial local de las últimas 10 predicciones.
+- PWA instalable.
 
-- `index.html` — aplicación web.
-- `api/standings.js` — backend serverless que consulta football-data.org sin exponer el token al navegador.
-- `manifest.webmanifest` — instalación como PWA.
-- `sw.js` — caché básica para la PWA.
-- `vercel.json` — configuración de despliegue.
-- `.env.example` — nombre de la variable secreta.
+## Despliegue en Vercel
+1. Conecta este repositorio de GitHub al proyecto existente de Vercel.
+2. En Vercel configura la variable de entorno `FOOTBALL_DATA_TOKEN`.
+3. Despliega a producción.
 
-## Publicación con Vercel
+El token se usa únicamente en `api/standings.js` y no se incluye en el código del navegador.
 
-1. Sube esta carpeta a un repositorio privado de GitHub o importa el proyecto directamente en Vercel.
-2. En la configuración del proyecto crea la variable de entorno:
-   `FOOTBALL_DATA_TOKEN`
-3. Como valor, pega tu token de football-data.org.
-4. Despliega.
-5. Comprueba que `/api/standings` devuelve la clasificación y que la página la muestra.
-
-El token no debe ponerse dentro de `index.html`.
-
-## Nota de datos
-
-La aplicación muestra el aviso de atribución requerido por football-data.org.
+Datos de clasificación y resultados proporcionados por football-data.org.
