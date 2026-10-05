@@ -1,0 +1,9 @@
+{
+  "name": "el-oraculo-de-futbol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web/PWA de estadísticas y predicciones educativas de fútbol.",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}

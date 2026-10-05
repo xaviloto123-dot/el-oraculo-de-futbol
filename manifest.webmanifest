@@ -1,0 +1,10 @@
+{
+  "name": "El Oráculo de Fútbol",
+  "short_name": "Oráculo de Fútbol",
+  "description": "Estadísticas y predicciones educativas de partidos de fútbol.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "lang": "es"
+}

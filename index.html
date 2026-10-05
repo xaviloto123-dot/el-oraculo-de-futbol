@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111827">
+    <meta name="description" content="El Oráculo de Fútbol: estadísticas y predicciones educativas de partidos.">
+    <meta name="application-name" content="El Oráculo de Fútbol">
+    <link rel="manifest" href="manifest.webmanifest">
+
+
+    <title>El Oráculo de Fútbol</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #111827, #4b0f1f);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .contenedor {
+            width: 90%;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 38px;
+            margin-bottom: 5px;
+        }
+
+        .subtitulo {
+            color: #d1d5db;
+            margin-bottom: 30px;
+        }
+
+        .tarjeta {
+            background: rgba(255,255,255,0.10);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        .equipos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .selector-equipo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .selector-equipo img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        select {
+            width: 220px;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .vs {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #facc15;
+            color: #111827;
+        }
+
+        button:hover {
+            transform: scale(1.04);
+        }
+
+        .resultado-caja {
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .marcador {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            font-size: 38px;
+            font-weight: bold;
+            margin: 25px 0;
+        }
+
+        .equipo-marcador {
+            font-size: 18px;
+        }
+
+        .equipo-marcador img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .confianza {
+            font-size: 21px;
+            margin: 20px 0;
+        }
+
+        .probabilidades {
+            text-align: left;
+            margin-top: 30px;
+        }
+
+        .barra {
+            width: 100%;
+            height: 25px;
+            background: #374151;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 8px 0 18px;
+        }
+
+        .relleno {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.5s;
+        }
+
+        .barra-local {
+            background: #facc15;
+        }
+
+        .barra-empate {
+            background: #9ca3af;
+        }
+
+        .barra-visitante {
+            background: #60a5fa;
+        }
+
+        .estadisticas {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .estadistica-equipo {
+            background: rgba(255,255,255,0.07);
+            padding: 18px;
+            border-radius: 15px;
+        }
+
+        .estadistica-equipo h3 {
+            margin-top: 0;
+        }
+
+        .dato {
+            margin: 8px 0;
+        }
+
+        .analisis {
+            margin-top: 25px;
+            background: rgba(0,0,0,0.20);
+            padding: 20px;
+            border-radius: 15px;
+            line-height: 1.5;
+        }
+
+        .aviso {
+            color: #fca5a5;
+            font-weight: bold;
+        }
+
+        @media (max-width: 650px) {
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .estadisticas {
+                grid-template-columns: 1fr;
+            }
+
+            .marcador {
+                gap: 12px;
+                font-size: 30px;
+            }
+
+            .equipos {
+                gap: 15px;
+            }
+
+        }
+
+    
+#tablaLigaCaja{margin-top:25px}
+.estado-tabla{margin:10px 0 15px;color:#d1d5db;font-size:14px}
+.tabla-scroll{overflow-x:auto}
+#tablaLiga{width:100%;border-collapse:collapse;min-width:620px}
+#tablaLiga th,#tablaLiga td{padding:9px 7px;border-bottom:1px solid rgba(255,255,255,.10);text-align:center}
+#tablaLiga th:first-child,#tablaLiga td:first-child,#tablaLiga th:nth-child(2),#tablaLiga td:nth-child(2){text-align:left}
+#tablaLiga .puesto{width:35px}
+#tablaLiga .equipo-tabla{font-weight:600}
+#tablaLiga tr.valencia-row{background:rgba(245,158,11,.16);font-weight:700}
+#tablaLiga .sin-datos{text-align:center;padding:20px}
+
+#historialCaja {
+    margin-top: 25px;
+}
+
+.prediccion-historial {
+    background: rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 12px 0;
+    text-align: left;
+}
+
+.prediccion-historial strong {
+    font-size: 18px;
+}
+
+.prediccion-historial small {
+    color: #d1d5db;
+}
+
+#historialCaja button {
+    background: #ef4444;
+    color: white;
+    margin-top: 15px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+    <h1>🔮 El Oráculo de Fútbol</h1>
+
+    <p class="subtitulo">
+        Sistema de predicción de partidos basado en estadísticas
+    </p>
+
+
+    <div class="tarjeta">
+
+        <div class="equipos">
+
+            <div class="selector-equipo">
+
+                <img id="escudoLocal" src="" alt="Escudo local">
+
+                <select id="local" onchange="actualizarEscudos()">
+                    <option value="Valencia">Valencia CF</option>
+                    <option value="Real Madrid">Real Madrid</option>
+                    <option value="Barcelona">FC Barcelona</option>
+                    <option value="Atlético">Atlético de Madrid</option>
+                    <option value="Betis">Real Betis</option>
+                    <option value="Sevilla">Sevilla FC</option>
+                    <option value="Alavés">Deportivo Alavés</option>
+                    <option value="Real Sociedad">Real Sociedad</option>
+                    <option value="Villarreal">Villarreal CF</option>
+                    <option value="Athletic">Athletic Club</option>
+                    <option value="Getafe">Getafe CF</option>
+                    <option value="Rayo">Rayo Vallecano</option>
+                    <option value="Osasuna">CA Osasuna</option>
+                    <option value="Celta">RC Celta de Vigo</option>
+                    <option value="Espanyol">RCD Espanyol</option>
+                    <option value="Racing">Racing Santander</option>
+                    <option value="Levante">Levante UD</option>
+                    <option value="Elche">Elche CF</option>
+                    <option value="Deportivo">RC Deportivo</option>
+                    <option value="Málaga">Málaga CF</option>
+</select>
+
+                <strong>LOCAL</strong>
+
+            </div>
+
+
+            <div class="vs">
+                VS
+            </div>
+
+
+            <div class="selector-equipo">
+
+                <img id="escudoVisitante" src="" alt="Escudo visitante">
+
+                <select id="visitante" onchange="actualizarEscudos()">
+                    <option value="Valencia">Valencia CF</option>
+                    <option value="Real Madrid">Real Madrid</option>
+                    <option value="Barcelona">FC Barcelona</option>
+                    <option value="Atlético">Atlético de Madrid</option>
+                    <option value="Betis">Real Betis</option>
+                    <option value="Sevilla">Sevilla FC</option>
+                    <option value="Alavés">Deportivo Alavés</option>
+                    <option value="Real Sociedad">Real Sociedad</option>
+                    <option value="Villarreal">Villarreal CF</option>
+                    <option value="Athletic">Athletic Club</option>
+                    <option value="Getafe">Getafe CF</option>
+                    <option value="Rayo">Rayo Vallecano</option>
+                    <option value="Osasuna">CA Osasuna</option>
+                    <option value="Celta">RC Celta de Vigo</option>
+                    <option value="Espanyol">RCD Espanyol</option>
+                    <option value="Racing">Racing Santander</option>
+                    <option value="Levante">Levante UD</option>
+                    <option value="Elche">Elche CF</option>
+                    <option value="Deportivo">RC Deportivo</option>
+                    <option value="Málaga">Málaga CF</option>
+</select>
+
+                <strong>VISITANTE</strong>
+
+            </div>
+
+        </div>
+
+
+        <button onclick="predecir()">
+            🔮 PREDECIR PARTIDO
+        </button>
+
+    </div>
+
+
+    <div id="resultado"></div>
+
+<div id="tablaLigaCaja" class="tarjeta">
+<h2>🏆 Clasificación de LaLiga</h2>
+<p class="estado-tabla" id="estadoTabla">Cargando clasificación actual...</p>
+<div class="tabla-scroll">
+<table id="tablaLiga">
+<thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
+<tbody id="tablaLigaBody"><tr><td colspan="10" class="sin-datos">Cargando...</td></tr></tbody>
+</table>
+</div>
+<p class="estado-tabla">Se actualiza al abrir la página y cada 30 minutos.</p>
+<p class="estado-tabla">Datos de clasificación proporcionados por football-data.org.</p>
+</div>
+
+
+<div class="tarjeta" id="historialCaja">
+
+    <h2>📜 Historial de predicciones</h2>
+
+    <div id="historial">
+        <p>Todavía no hay predicciones.</p>
+    </div>
+
+    <button onclick="borrarHistorial()">
+        🗑️ Borrar historial
+    </button>
+
+</div>
+</div>
+
+
+<script>
+
+
+/* ================================
+   ESTADÍSTICAS DE LOS EQUIPOS
+================================ */
+
+let datosClasificacionActuales = [];
+
+function obtenerEstadisticas(equipo) {
+
+    // Si la API ya ha cargado la clasificación, calculamos las métricas
+    // a partir de los datos actuales de la liga. Si todavía no han llegado,
+    // usamos valores de respaldo para que el predictor siga funcionando.
+    const fila = datosClasificacionActuales.find(f => {
+        const original = f.team?.name || "";
+        const nombre = nombresTabla[original] || original;
+        return nombre === equipo;
+    });
+
+    if (fila) {
+        const jugados = Math.max(1, Number(fila.playedGames) || 1);
+        const gf = Number(fila.goalsFor) || 0;
+        const gc = Number(fila.goalsAgainst) || 0;
+        const puntos = Number(fila.points) || 0;
+
+        const golesFavorPorPartido = gf / jugados;
+        const golesContraPorPartido = gc / jugados;
+        const puntosPorPartido = puntos / jugados;
+
+        const liga = datosClasificacionActuales;
+        const partidosLiga = liga.reduce((sum, f) => sum + (Number(f.playedGames) || 0), 0);
+        const gfLiga = liga.reduce((sum, f) => sum + (Number(f.goalsFor) || 0), 0);
+        const gcLiga = liga.reduce((sum, f) => sum + (Number(f.goalsAgainst) || 0), 0);
+        const mediaPartidos = partidosLiga / Math.max(1, liga.length);
+        const mediaGF = gfLiga / Math.max(1, partidosLiga);
+        const mediaGC = gcLiga / Math.max(1, partidosLiga);
+
+        const ataque = Math.max(45, Math.min(99,
+            72 + ((golesFavorPorPartido - mediaGF) * 32)
+        ));
+
+        const defensa = Math.max(45, Math.min(99,
+            72 + ((mediaGC - golesContraPorPartido) * 32)
+        ));
+
+        const forma = Math.max(45, Math.min(99,
+            55 + (puntosPorPartido / 3) * 45
+        ));
+
+        // La clasificación no proporciona estadísticas de local/visitante
+        // en este endpoint, así que usamos una ventaja de campo común.
+        const casa = 78;
+
+        return { ataque, defensa, casa, forma };
+    }
+
+    const estadisticas = {
+        "Valencia": { ataque: 78, defensa: 76, casa: 82, forma: 75 },
+        "Real Madrid": { ataque: 95, defensa: 91, casa: 94, forma: 90 },
+        "Barcelona": { ataque: 93, defensa: 87, casa: 92, forma: 88 },
+        "Atlético": { ataque: 86, defensa: 91, casa: 89, forma: 86 },
+        "Athletic": { ataque: 82, defensa: 84, casa: 85, forma: 82 },
+        "Villarreal": { ataque: 84, defensa: 80, casa: 84, forma: 83 },
+        "Sevilla": { ataque: 78, defensa: 78, casa: 80, forma: 76 },
+        "Betis": { ataque: 81, defensa: 76, casa: 82, forma: 80 },
+        "Levante": { ataque: 74, defensa: 72, casa: 76, forma: 74 },
+        "Alavés": { ataque: 73, defensa: 78, casa: 77, forma: 75 },
+        "Real Sociedad": { ataque: 78, defensa: 78, casa: 80, forma: 76 },
+        "Getafe": { ataque: 69, defensa: 76, casa: 75, forma: 72 },
+        "Rayo": { ataque: 75, defensa: 71, casa: 78, forma: 73 },
+        "Osasuna": { ataque: 70, defensa: 73, casa: 76, forma: 72 },
+        "Celta": { ataque: 73, defensa: 76, casa: 78, forma: 74 },
+        "Espanyol": { ataque: 74, defensa: 73, casa: 77, forma: 72 },
+        "Racing": { ataque: 76, defensa: 70, casa: 75, forma: 73 },
+        "Elche": { ataque: 72, defensa: 69, casa: 75, forma: 70 },
+        "Deportivo": { ataque: 72, defensa: 74, casa: 77, forma: 73 },
+        "Málaga": { ataque: 68, defensa: 69, casa: 74, forma: 68 }
+    };
+
+    return estadisticas[equipo] || { ataque: 70, defensa: 70, casa: 70, forma: 70 };
+}
+
+
+
+/* ================================
+   ESCUDOS
+================================ */
+
+const escudosDinamicos = {};
+
+function obtenerEscudo(equipo) {
+
+    if (escudosDinamicos[equipo]) return escudosDinamicos[equipo];
+
+    const escudos = {
+
+        "Valencia":
+        "https://upload.wikimedia.org/wikipedia/en/c/ce/Valenciacf.svg",
+
+        "Real Madrid":
+        "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
+
+        "Barcelona":
+        "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+
+        "Atlético":
+        "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg",
+
+        "Athletic":
+        "https://upload.wikimedia.org/wikipedia/en/9/98/Club_Athletic_Bilbao_logo.svg",
+
+        "Villarreal":
+        "https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg",
+
+        "Sevilla":
+        "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg",
+
+        "Betis":
+        "https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg",
+
+        "Levante":
+        "https://upload.wikimedia.org/wikipedia/en/7/7c/Levante_UD_crest.svg"
+
+    };
+
+
+    return escudos[equipo] || "";
+
+}
+
+
+
+/* ================================
+   ACTUALIZAR ESCUDOS
+================================ */
+
+function actualizarEscudos() {
+
+    const local =
+        document.getElementById("local").value;
+
+    const visitante =
+        document.getElementById("visitante").value;
+
+
+    document.getElementById("escudoLocal").src =
+        obtenerEscudo(local);
+
+    document.getElementById("escudoVisitante").src =
+        obtenerEscudo(visitante);
+
+}
+
+
+
+/* ================================
+   GENERADOR DE NÚMERO ALEATORIO
+================================ */
+
+function aleatorio(min, max) {
+
+    return Math.random() * (max - min) + min;
+
+}
+
+
+
+/* ================================
+   PREDICCIÓN
+================================ */
+
+function predecir() {
+
+
+    const local =
+        document.getElementById("local").value;
+
+    const visitante =
+        document.getElementById("visitante").value;
+
+
+    /* Evitar mismo equipo */
+
+    if (local === visitante) {
+
+        document.getElementById("resultado").innerHTML = `
+            <div class="tarjeta">
+
+                <h2>⚠️ Error</h2>
+
+                <p class="aviso">
+                    Debes seleccionar dos equipos diferentes.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+
+    const datosLocal =
+        obtenerEstadisticas(local);
+
+    const datosVisitante =
+        obtenerEstadisticas(visitante);
+
+
+
+    /* ================================
+       FUERZA GENERAL
+    ================================= */
+
+    const fuerzaLocal =
+
+        datosLocal.ataque * 0.40 +
+        datosLocal.defensa * 0.30 +
+        datosLocal.forma * 0.30;
+
+
+    const fuerzaVisitante =
+
+        datosVisitante.ataque * 0.40 +
+        datosVisitante.defensa * 0.30 +
+        datosVisitante.forma * 0.30;
+
+
+
+    /* ================================
+       VENTAJA DE CAMPO
+    ================================= */
+
+    const ventajaCasa =
+        (datosLocal.casa - 70) * 0.35;
+
+
+
+    const fuerzaFinalLocal =
+        fuerzaLocal + ventajaCasa;
+
+
+
+    /* ================================
+       DIFERENCIA
+    ================================= */
+
+    const diferencia =
+        fuerzaFinalLocal - fuerzaVisitante;
+
+
+
+    /* ================================
+       ATAQUE VS DEFENSA
+    ================================= */
+
+    const ataqueLocal =
+        datosLocal.ataque -
+        datosVisitante.defensa;
+
+
+    const ataqueVisitante =
+        datosVisitante.ataque -
+        datosLocal.defensa;
+
+
+
+    /* ================================
+       PROBABILIDADES
+    ================================= */
+
+    let ventaja =
+        diferencia * 1.35;
+
+
+    let probLocal =
+        42 + ventaja;
+
+
+    let probVisitante =
+        42 - ventaja;
+
+
+    /* El empate aumenta cuando
+       los equipos están igualados */
+
+    const distancia =
+        Math.abs(diferencia);
+
+
+    let probEmpate =
+        32 - distancia * 0.45;
+
+
+
+    /* Límites */
+
+    probEmpate =
+        Math.max(15, Math.min(32, probEmpate));
+
+
+    probLocal =
+        Math.max(10, Math.min(75, probLocal));
+
+
+    probVisitante =
+        Math.max(10, Math.min(75, probVisitante));
+
+
+
+    /* Ajustar para que sumen 100 */
+
+    const suma =
+        probLocal +
+        probEmpate +
+        probVisitante;
+
+
+    probLocal =
+        probLocal / suma * 100;
+
+    probEmpate =
+        probEmpate / suma * 100;
+
+    probVisitante =
+        probVisitante / suma * 100;
+
+
+
+    /* ================================
+       RESULTADO
+    ================================= */
+
+    const numero =
+        Math.random() * 100;
+
+
+    let resultado;
+
+
+    if (numero < probLocal) {
+
+        resultado = "local";
+
+    }
+
+    else if (
+        numero <
+        probLocal + probEmpate
+    ) {
+
+        resultado = "empate";
+
+    }
+
+    else {
+
+        resultado = "visitante";
+
+    }
+
+
+
+    /* ================================
+       CONFIANZA
+    ================================= */
+
+    const probabilidadMaxima =
+        Math.max(
+            probLocal,
+            probEmpate,
+            probVisitante
+        );
+
+
+    let confianza =
+        Math.round(
+            50 +
+            (probabilidadMaxima - 33.33) * 1.6
+        );
+
+
+    confianza =
+        Math.max(
+            50,
+            Math.min(95, confianza)
+        );
+
+
+
+    /* ================================
+       GOLES ESPERADOS
+    ================================= */
+
+    let golesEsperadosLocal =
+
+        1.15 +
+
+        (ataqueLocal / 100) * 1.15 +
+
+        (diferencia / 100) * 0.45;
+
+
+
+    let golesEsperadosVisitante =
+
+        1.05 +
+
+        (ataqueVisitante / 100) * 1.10 -
+
+        (diferencia / 100) * 0.35;
+
+
+
+    /* Límites */
+
+    golesEsperadosLocal =
+        Math.max(
+            0.35,
+            Math.min(3.8, golesEsperadosLocal)
+        );
+
+
+    golesEsperadosVisitante =
+        Math.max(
+            0.30,
+            Math.min(3.5, golesEsperadosVisitante)
+        );
+
+
+
+    /* ================================
+       GENERAR GOLES
+    ================================= */
+
+    function generarGoles(media) {
+
+        const variacion =
+            aleatorio(-0.8, 1.0);
+
+        return Math.max(
+            0,
+            Math.min(
+                5,
+                Math.round(media + variacion)
+            )
+        );
+
+    }
+
+
+
+    let golesLocal =
+        generarGoles(golesEsperadosLocal);
+
+
+    let golesVisitante =
+        generarGoles(golesEsperadosVisitante);
+
+
+
+    /* ================================
+       HACER COHERENTE EL MARCADOR
+    ================================= */
+
+    if (resultado === "local") {
+
+        if (golesLocal <= golesVisitante) {
+
+            golesLocal =
+                golesVisitante + 1;
+
+        }
+
+    }
+
+
+    if (resultado === "visitante") {
+
+        if (golesVisitante <= golesLocal) {
+
+            golesVisitante =
+                golesLocal + 1;
+
+        }
+
+    }
+
+
+    if (resultado === "empate") {
+
+        const empate =
+            Math.min(
+                golesLocal,
+                golesVisitante
+            );
+
+        golesLocal = empate;
+        golesVisitante = empate;
+
+    }
+
+
+
+    /* Evitar resultados demasiado extremos */
+
+    golesLocal =
+        Math.min(5, golesLocal);
+
+    golesVisitante =
+        Math.min(5, golesVisitante);
+
+
+
+    /* ================================
+       TEXTO DEL RESULTADO
+    ================================= */
+
+    let textoResultado;
+
+
+    if (resultado === "local") {
+
+        textoResultado =
+            `🏠 Victoria del ${local}`;
+
+    }
+
+    else if (resultado === "visitante") {
+
+        textoResultado =
+            `✈️ Victoria del ${visitante}`;
+
+    }
+
+    else {
+
+        textoResultado =
+            "🤝 Empate";
+
+    }
+
+
+
+    /* ================================
+       ANÁLISIS
+    ================================= */
+
+    let analisis;
+
+
+    if (diferencia > 15) {
+
+        analisis =
+            `${local} presenta una ventaja estadística clara. Su combinación de ataque, defensa y forma es superior, además de contar con el factor campo.`;
+
+    }
+
+    else if (diferencia > 5) {
+
+        analisis =
+            `${local} parte con cierta ventaja estadística. El factor campo y sus números generales favorecen al equipo local.`;
+
+    }
+
+    else if (diferencia < -15) {
+
+        analisis =
+            `${visitante} presenta una ventaja estadística clara frente al equipo local.`;
+
+    }
+
+    else if (diferencia < -5) {
+
+        analisis =
+            `${visitante} tiene mejores números generales, aunque jugar fuera de casa reduce parte de esa ventaja.`;
+
+    }
+
+    else {
+
+        analisis =
+            `Los dos equipos están bastante igualados estadísticamente, por lo que el partido presenta bastante incertidumbre.`;
+
+    }
+
+
+
+    /* ================================
+       MOSTRAR RESULTADO
+    ================================= */
+
+    document.getElementById("resultado").innerHTML = `
+
+        <div class="tarjeta resultado-caja">
+
+            <h2>
+                ${textoResultado}
+            </h2>
+
+
+            <div class="marcador">
+
+                <div class="equipo-marcador">
+
+                    <img
+                        src="${obtenerEscudo(local)}"
+                        alt="${local}"
+                    >
+
+                    <div>
+                        ${local}
+                    </div>
+
+                </div>
+
+
+                <div>
+                    ${golesLocal} - ${golesVisitante}
+                </div>
+
+
+                <div class="equipo-marcador">
+
+                    <img
+                        src="${obtenerEscudo(visitante)}"
+                        alt="${visitante}"
+                    >
+
+                    <div>
+                        ${visitante}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="confianza">
+
+                🔮 Confianza:
+                <strong>${confianza}%</strong>
+
+            </div>
+
+
+
+            <div class="probabilidades">
+
+                <h3>
+                    📊 Probabilidades
+                </h3>
+
+
+                <p>
+                    🏠 ${local}:
+                    <strong>
+                        ${Math.round(probLocal)}%
+                    </strong>
+                </p>
+
+                <div class="barra">
+
+                    <div
+                        class="relleno barra-local"
+                        style="width:${probLocal}%"
+                    ></div>
+
+                </div>
+
+
+
+                <p>
+                    🤝 Empate:
+                    <strong>
+                        ${Math.round(probEmpate)}%
+                    </strong>
+                </p>
+
+                <div class="barra">
+
+                    <div
+                        class="relleno barra-empate"
+                        style="width:${probEmpate}%"
+                    ></div>
+
+                </div>
+
+
+
+                <p>
+                    ✈️ ${visitante}:
+                    <strong>
+                        ${Math.round(probVisitante)}%
+                    </strong>
+                </p>
+
+                <div class="barra">
+
+                    <div
+                        class="relleno barra-visitante"
+                        style="width:${probVisitante}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="estadisticas">
+
+
+                <div class="estadistica-equipo">
+
+                    <h3>
+                        🏠 ${local}
+                    </h3>
+
+                    <div class="dato">
+                        ⚽ Ataque:
+                        <strong>
+                            ${datosLocal.ataque}
+                        </strong>
+                    </div>
+
+                    <div class="dato">
+                        🛡️ Defensa:
+                        <strong>
+                            ${datosLocal.defensa}
+                        </strong>
+                    </div>
+
+                    <div class="dato">
+                        🏠 Casa:
+                        <strong>
+                            ${datosLocal.casa}
+                        </strong>
+                    </div>
+
+                    <div class="dato">
+                        📈 Forma:
+                        <strong>
+                            ${datosLocal.forma}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+
+                <div class="estadistica-equipo">
+
+                    <h3>
+                        ✈️ ${visitante}
+                    </h3>
+
+                    <div class="dato">
+                        ⚽ Ataque:
+                        <strong>
+                            ${datosVisitante.ataque}
+                        </strong>
+                    </div>
+
+                    <div class="dato">
+                        🛡️ Defensa:
+                        <strong>
+                            ${datosVisitante.defensa}
+                        </strong>
+                    </div>
+
+                    <div class="dato">
+                        🏠 Casa:
+                        <strong>
+                            ${datosVisitante.casa}
+                        </strong>
+                    </div>
+
+                    <div class="dato">
+                        📈 Forma:
+                        <strong>
+                            ${datosVisitante.forma}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="analisis">
+
+                <h3>
+                    🧠 Análisis del Oráculo
+                </h3>
+
+                <p>
+                    ${analisis}
+                </p>
+
+                <p>
+                    El sistema tiene en cuenta ataque,
+                    defensa, forma reciente, ventaja de
+                    campo y diferencia general entre los
+                    equipos.
+                </p>
+
+            </div>
+
+        </div>
+
+    `;
+
+    guardarPrediccion(
+        local,
+        visitante,
+        golesLocal,
+        golesVisitante,
+        confianza,
+        textoResultado
+    );
+}
+
+
+
+/* ================================
+   INICIAR ESCUDOS
+================================ */
+
+actualizarEscudos();
+function guardarPrediccion(
+    local,
+    visitante,
+    golesLocal,
+    golesVisitante,
+    confianza,
+    resultado
+) {
+
+    let historial =
+        JSON.parse(
+            localStorage.getItem("historialOraculo")
+        ) || [];
+
+
+    const nuevaPrediccion = {
+
+        local: local,
+
+        visitante: visitante,
+
+        golesLocal: golesLocal,
+
+        golesVisitante: golesVisitante,
+
+        confianza: confianza,
+
+        resultado: resultado,
+
+        fecha: new Date().toLocaleString("es-ES")
+
+    };
+
+
+    historial.unshift(nuevaPrediccion);
+
+
+    historial =
+        historial.slice(0, 5);
+
+
+    localStorage.setItem(
+        "historialOraculo",
+        JSON.stringify(historial)
+    );
+
+
+    mostrarHistorial();
+
+}
+
+
+function mostrarHistorial() {
+
+    const historial =
+        JSON.parse(
+            localStorage.getItem("historialOraculo")
+        ) || [];
+
+
+    const contenedor =
+        document.getElementById("historial");
+
+
+    if (historial.length === 0) {
+
+        contenedor.innerHTML =
+            "<p>Todavía no hay predicciones.</p>";
+
+        return;
+
+    }
+
+
+    contenedor.innerHTML =
+        historial.map(prediccion => `
+
+            <div class="prediccion-historial">
+
+                <strong>
+                    ${prediccion.local}
+                    ${prediccion.golesLocal}
+                    -
+                    ${prediccion.golesVisitante}
+                    ${prediccion.visitante}
+                </strong>
+
+                <br>
+
+                <small>
+                    ${prediccion.resultado}
+                    · Confianza:
+                    ${prediccion.confianza}%
+                </small>
+
+                <br>
+
+                <small>
+                    ${prediccion.fecha}
+                </small>
+
+            </div>
+
+        `).join("");
+
+}
+
+
+function borrarHistorial() {
+
+    localStorage.removeItem(
+        "historialOraculo"
+    );
+
+    mostrarHistorial();
+
+}
+
+
+mostrarHistorial();
+
+
+/* ===== TABLA DE LALIGA AUTOMATICA ===== */
+/*
+  La clave de football-data.org NO está en este archivo.
+  El navegador consulta nuestro endpoint /api/standings,
+  que la obtiene desde una variable de entorno del servidor.
+*/
+
+const API_URL = "/api/standings";
+
+const nombresTabla = {
+ "FC Barcelona":"Barcelona","Barcelona":"Barcelona","Real Madrid CF":"Real Madrid",
+ "Atlético de Madrid":"Atlético","Athletic Club":"Athletic","Villarreal CF":"Villarreal",
+ "Sevilla FC":"Sevilla","Real Betis":"Betis","Valencia CF":"Valencia","Levante UD":"Levante",
+ "Getafe CF":"Getafe","RC Celta de Vigo":"Celta","RCD Espanyol de Barcelona":"Espanyol",
+ "Rayo Vallecano de Madrid":"Rayo","CA Osasuna":"Osasuna",
+ "Real Sociedad de Fútbol":"Real Sociedad","Deportivo Alavés":"Alavés","Elche CF":"Elche",
+ "Getafe CF":"Getafe","Rayo Vallecano":"Rayo","Rayo Vallecano de Madrid":"Rayo",
+ "CA Osasuna":"Osasuna","RC Celta de Vigo":"Celta","RCD Espanyol de Barcelona":"Espanyol",
+ "Racing Santander":"Racing","Racing Club de Santander":"Racing","RC Deportivo de La Coruña":"Deportivo",
+ "RC Deportivo":"Deportivo","Málaga CF":"Málaga","Malaga CF":"Málaga"
+};
+
+function escHTML(texto){
+ return String(texto).replaceAll("&","&amp;").replaceAll("<","&lt;")
+ .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+function pintarTablaLiga(standings){
+ const cuerpo=document.getElementById("tablaLigaBody");
+ const estado=document.getElementById("estadoTabla");
+ if(!cuerpo)return;
+ cuerpo.innerHTML=standings.map((fila,indice)=>{
+   const original=fila.team?.name||"Equipo";
+   const nombre=nombresTabla[original]||original;
+   const clase=/valencia/i.test(original)?"valencia-row":"";
+   return `<tr class="${clase}">
+    <td class="puesto">${fila.position??indice+1}</td><td class="equipo-tabla">${escHTML(nombre)}</td>
+    <td>${fila.playedGames??0}</td><td>${fila.won??0}</td><td>${fila.draw??0}</td>
+    <td>${fila.lost??0}</td><td>${fila.goalsFor??0}</td><td>${fila.goalsAgainst??0}</td>
+    <td>${fila.goalDifference??0}</td><td><strong>${fila.points??0}</strong></td></tr>`;
+ }).join("");
+ estado.textContent="Actualizada: "+new Date().toLocaleString("es-ES");
+}
+
+function actualizarSelectoresConTabla(standings){
+ const local=document.getElementById("local");
+ const visitante=document.getElementById("visitante");
+ if(!local||!visitante||!Array.isArray(standings)||!standings.length)return;
+ const actualLocal=local.value;
+ const actualVisitante=visitante.value;
+ const equipos=standings.map(f=>{
+   const original=f.team?.name||"Equipo";
+   const nombre=nombresTabla[original]||original;
+   if(f.team?.crest) escudosDinamicos[nombre]=f.team.crest;
+   return {value:nombre,label:nombre};
+ }).filter((e,i,a)=>a.findIndex(x=>x.value===e.value)===i);
+ const options=equipos.map(e=>`<option value="${escHTML(e.value)}">${escHTML(e.label)}</option>`).join("");
+ local.innerHTML=options;
+ visitante.innerHTML=options;
+ local.value=equipos.some(e=>e.value===actualLocal)?actualLocal:(equipos[0]?.value||"");
+ visitante.value=equipos.some(e=>e.value===actualVisitante)?actualVisitante:(equipos[1]?.value||equipos[0]?.value||"");
+ actualizarEscudos();
+}
+
+async function cargarTablaLiga(){
+ const cuerpo=document.getElementById("tablaLigaBody"), estado=document.getElementById("estadoTabla");
+ if(!cuerpo||!estado)return;
+ try{
+   estado.textContent="Actualizando clasificación...";
+   const respuesta=await fetch(API_URL,{headers:{"Accept":"application/json"}});
+   if(!respuesta.ok)throw new Error("HTTP "+respuesta.status);
+   const datos=await respuesta.json();
+   if(!Array.isArray(datos.table))throw new Error("Formato de clasificación no válido");
+   datosClasificacionActuales = datos.table;
+   pintarTablaLiga(datos.table);
+   actualizarSelectoresConTabla(datos.table);
+ }catch(error){
+   console.error(error);
+   estado.textContent="No se pudo actualizar ahora.";
+   cuerpo.innerHTML='<tr><td colspan="10" class="sin-datos">No hay datos disponibles en este momento.</td></tr>';
+ }
+}
+cargarTablaLiga();
+setInterval(cargarTablaLiga,30*60*1000);
+
+</script>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+}
+</script>
+</body>
+
+</html>
