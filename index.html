@@ -32,70 +32,392 @@
 
 <section class="tarjeta" id="historialCaja"><h2>📜 Historial</h2><div id="historial"><p class="estado">Todavía no hay predicciones.</p></div><button class="boton danger" id="btnBorrar">🗑️ Borrar historial</button></section>
 </div>
+
 <script>
-let tabla=[]; let equipos=[];
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function media(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}
-function stats(row){
- const s=row.stats; const pj=Math.max(1,s.playedGames); const gf=s.goalsFor/pj, ga=s.goalsAgainst/pj, ppg=s.points/pj;
- const h=s.home, a=s.away;
- const homeGF=h.played?h.gf/h.played:gf, homeGA=h.played?h.ga/h.played:ga;
- const awayGF=a.played?a.gf/a.played:gf, awayGA=a.played?a.ga/a.played:ga;
- const formPts=s.recent.reduce((t,m)=>t+(m.result==='W'?3:m.result==='D'?1:0),0)/Math.max(1,s.recent.length)/3;
- return {gf,ga,ppg,homeGF,homeGA,awayGF,awayGA,form:formPts,home:h,away:a,recent:s.recent};
-}
-function strength(row, venue){
- const x=stats(row); const attack=venue==='home'?x.homeGF:x.awayGF; const defense=venue==='home'?x.homeGA:x.awayGA;
- const leagueGF=media(tabla.map(r=>r.stats.goalsFor/Math.max(1,r.stats.playedGames)));
- const leagueGA=media(tabla.map(r=>r.stats.goalsAgainst/Math.max(1,r.stats.playedGames)));
- return {attack:Math.max(45,Math.min(99,72+(attack-leagueGF)*30)),defense:Math.max(45,Math.min(99,72+(leagueGA-defense)*30)),form:Math.max(40,Math.min(99,45+x.form*50)),ppg:x.ppg};
-}
-function populate(){
- const opts=equipos.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join(''); $('local').innerHTML=opts; $('visitante').innerHTML=opts; $('local').selectedIndex=0; $('visitante').selectedIndex=1; updateCrests();
-}
-function team(id){return equipos.find(t=>String(t.id)===String(id));}
-function updateCrests(){const l=team($('local').value),v=team($('visitante').value); $('escudoLocal').src=l?.crest||''; $('escudoVisitante').src=v?.crest||'';}
-function renderTable(){
- $('tablaLigaBody').innerHTML=tabla.map(r=>{const t=r.team,n=t.name||'';return `<tr class="${/valencia/i.test(n)?'fila-valencia':''}"><td>${r.position}</td><td>${esc(n)}</td><td>${r.playedGames}</td><td>${r.won}</td><td>${r.draw}</td><td>${r.lost}</td><td>${r.goalsFor}</td><td>${r.goalsAgainst}</td><td>${r.goalsFor-r.goalsAgainst}</td><td><b>${r.points}</b></td></tr>`}).join('');
- $('estadoTabla').textContent=`Actualizada: ${new Date().toLocaleString('es-ES')}`;
-}
-function formHTML(row){return row.stats.recent.map(m=>`<span class="resultado-forma ${m.result}" title="${esc(m.opponent)}">${m.result}</span>`).join('')||'<span class="estado">Sin partidos recientes</span>'}
-function recentHTML(row){return row.stats.recent.map(m=>`<div class="partido"><img src="${m.crest}" alt=""><span>${esc(m.opponent)}<br><small>${m.venue}</small></span><b>${m.gf}-${m.ga}</b></div>`).join('')||'<p class="estado">No hay partidos recientes.</p>'}
-function chart(label,a,b,max=100){const pa=Math.max(0,Math.min(100,a/max*100)),pb=Math.max(0,Math.min(100,b/max*100));return `<div class="fila-graf"><span>${label}</span><div class="barra-graf"><span style="width:${pa}%"></span></div><b>${a.toFixed(2)}</b></div><div class="fila-graf"><span></span><div class="barra-graf azul"><span style="width:${pb}%"></span></div><b>${b.toFixed(2)}</b></div>`}
-function prediccion(){
- const lr=tabla.find(r=>String(r.team.id)===String($('local').value)), vr=tabla.find(r=>String(r.team.id)===String($('visitante').value));
- if(!lr||!vr||lr.team.id===vr.team.id){$('resultado').innerHTML='<section class="tarjeta"><p class="aviso">Selecciona dos equipos diferentes.</p></section>';return}
- const L=strength(lr,'home'), V=strength(vr,'away');
- const formDiff=(L.form-V.form)*18, attackDiff=(L.attack-V.attack)*.5, defenseDiff=(L.defense-V.defense)*.35, homeAdv=4.5;
- const diff=formDiff+attackDiff+defenseDiff+homeAdv;
- let pL=38+diff*0.75,pV=38-diff*0.75,pD=100-pL-pV;
- pL=Math.max(12,Math.min(78,pL));pV=Math.max(12,Math.min(78,pV));pD=Math.max(15,Math.min(38,100-pL-pV)); const sum=pL+pD+pV;pL=pL/sum*100;pD=pD/sum*100;pV=pV/sum*100;
- const expL=Math.max(.2,Math.min(4,L.attack/72*1.15*(1+Math.max(0,diff)/180)+.15));
- const expV=Math.max(.2,Math.min(4,V.attack/72*1.05*(1+Math.max(0,-diff)/180)));
- const scoreL=Math.min(5,Math.max(0,Math.round(expL+(Math.random()-.45)*1.2))),scoreV=Math.min(5,Math.max(0,Math.round(expV+(Math.random()-.45)*1.2)));
- let outcome=scoreL>scoreV?'local':scoreL<scoreV?'visitante':'empate';
- const top=Math.max(pL,pD,pV), confidence=Math.round(Math.min(94,50+(top-33.33)*1.55));
- const resultText=outcome==='local'?`🏠 ${esc(lr.team.name)} parte como favorito`:outcome==='visitante'?`✈️ ${esc(vr.team.name)} parte como favorito`:'🤝 El Oráculo ve un partido muy equilibrado';
- const comparison=`<div class="comparacion"><div class="mini"><h3>${esc(lr.team.name)}</h3>${metric('Ataque',L.attack)}${metric('Defensa',L.defense)}${metric('Forma',L.form*100)}${metric('PPG',L.ppg,3)}</div><div class="mini"><h3>${esc(vr.team.name)}</h3>${metric('Ataque',V.attack)}${metric('Defensa',V.defense)}${metric('Forma',V.form*100)}${metric('PPG',V.ppg,3)}</div></div>`;
- $('resultado').innerHTML=`<section class="tarjeta resultado-caja"><h2>${resultText}</h2><div class="marcador"><div class="equipo-marcador"><img src="${lr.team.crest}" alt=""><div>${esc(lr.team.name)}</div></div><div>${scoreL} - ${scoreV}</div><div class="equipo-marcador"><img src="${vr.team.crest}" alt=""><div>${esc(vr.team.name)}</div></div></div><div class="confianza">🔮 Confianza estadística: <b>${confidence}%</b></div><div class="grid2"><div class="mini"><b>🏠 Local</b><p>${Math.round(pL)}%</p><div class="barra"><div class="relleno local" style="width:${pL}%"></div></div></div><div class="mini"><b>✈️ Visitante</b><p>${Math.round(pV)}%</p><div class="barra"><div class="relleno visitante" style="width:${pV}%"></div></div></div></div><div class="mini" style="margin-top:16px"><b>🤝 Empate: ${Math.round(pD)}%</b><div class="barra" style="margin-top:8px"><div class="relleno empate" style="width:${pD}%"></div></div></div>${comparison}<div class="graficos"><div class="grafico"><h4>📈 Rendimiento reciente</h4>${chart('Ataque',L.attack,V.attack)}${chart('Defensa',L.defense,V.defense)}${chart('Forma',L.form*100,V.form*100)}</div><div class="grafico"><h4>⚽ Producción</h4>${chart('Goles',stats(lr).homeGF,stats(vr).awayGF,3)}${chart('Encajados',stats(lr).homeGA,stats(vr).awayGA,3)}${chart('Puntos/part.',L.ppg,V.ppg,3)}</div></div><div class="ultimos"><div class="mini"><h3>🔥 Últimos 5 — ${esc(lr.team.name)}</h3><div class="forma">${formHTML(lr)}</div>${recentHTML(lr)}</div><div class="mini"><h3>🔥 Últimos 5 — ${esc(vr.team.name)}</h3><div class="forma">${formHTML(vr)}</div>${recentHTML(vr)}</div></div><div class="analisis mini" style="margin-top:18px"><h3>🧠 Análisis</h3><p>${analysis(diff,lr,vr,L,V)}</p><span class="badge">Sin apuestas · solo análisis estadístico</span></div></section>`;
- guardar({local:lr.team.name,visitante:vr.team.name,golesLocal:scoreL,golesVisitante:scoreV,confidence});
-}
-function metric(name,val,max=100){return `<div class="metric"><div class="metric-head"><span>${name}</span><b>${val.toFixed(0)}</b></div><div class="metric-bar"><span style="width:${Math.max(0,Math.min(100,val/max*100))}%"></span></div></div>`}
-function analysis(diff,l,v,L,V){
-if(diff>18)return `${esc(l.team.name)} combina mejores indicadores de ataque, defensa y forma reciente, además del factor de jugar en casa.`;
-if(diff>6)return `${esc(l.team.name)} tiene una ventaja estadística moderada. La forma reciente y el rendimiento como local inclinan el análisis.`;
-if(diff<-18)return `${esc(v.team.name)} llega con una ventaja estadística clara en este modelo, aunque jugar fuera reduce parte de esa diferencia.`;
-if(diff<-6)return `${esc(v.team.name)} presenta mejores indicadores globales y de forma, pero el factor campo mantiene el duelo abierto.`;
-return 'Los indicadores están bastante igualados. La forma reciente y los datos de local/visitante no muestran una diferencia grande, por lo que el partido es especialmente incierto.';
+let tabla = [];
+let equipos = [];
+
+const $ = id => document.getElementById(id);
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#039;'
+}[c]));
+
+function media(a) {
+  return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 }
 
-function guardar(p){let h=JSON.parse(localStorage.getItem('historialOraculoV2')||'[]');h.unshift({...p,fecha:new Date().toLocaleString('es-ES')});localStorage.setItem('historialOraculoV2',JSON.stringify(h.slice(0,10)));renderHistorial()}
-function renderHistorial(){const h=JSON.parse(localStorage.getItem('historialOraculoV2')||'[]');$('historial').innerHTML=h.length?h.map(x=>`<div class="historial-item"><b>${esc(x.local)} ${x.golesLocal}-${x.golesVisitante} ${esc(x.visitante)}</b><br><small>${x.fecha} · Confianza ${x.confidence}%</small></div>`).join(''):'<p class="estado">Todavía no hay predicciones.</p>'}
-async function cargar(){try{const r=await fetch('/api/standings');const d=await r.json();if(!r.ok)throw new Error(d.error||'Error');tabla=d.standings?.find(s=>s.type==='TOTAL')?.table||[];
-if(!tabla.length) throw new Error('La API no devolvió la clasificación');equipos=tabla.map(x=>({id:x.team.id,name:x.team.name,crest:x.team.crest||''}));populate();renderTable();$('estadoDatos').textContent=`Datos reales cargados · ${tabla.length} equipos · ${new Date(d.updatedAt).toLocaleString('es-ES')}`;}catch(e){$('estadoDatos').textContent='No se pudieron cargar los datos reales. Comprueba la configuración de Vercel.';$('estadoTabla').textContent=e.message;}}
-$('local').addEventListener('change',updateCrests);$('visitante').addEventListener('change',updateCrests);$('btnPredecir').addEventListener('click',prediccion);$('btnBorrar').addEventListener('click',()=>{localStorage.removeItem('historialOraculoV2');renderHistorial()});
-renderHistorial();cargar();
+// Adapta los datos de football-data.org al formato que usa la web.
+function adaptarEquipo(r) {
+  const pj = r.playedGames || 0;
+  const gf = pj ? r.goalsFor / pj : 0;
+  const ga = pj ? r.goalsAgainst / pj : 0;
+  const ppg = pj ? r.points / pj : 0;
+
+  return {
+    ...r,
+    stats: {
+      playedGames: pj,
+      goalsFor: r.goalsFor || 0,
+      goalsAgainst: r.goalsAgainst || 0,
+      points: r.points || 0,
+      home: { played: 0, gf: 0, ga: 0 },
+      away: { played: 0, gf: 0, ga: 0 },
+      recent: [],
+      gf,
+      ga,
+      ppg
+    }
+  };
+}
+
+function stats(row) {
+  const s = row.stats;
+  const pj = Math.max(1, s.playedGames);
+  const gf = s.goalsFor / pj;
+  const ga = s.goalsAgainst / pj;
+
+  return {
+    gf,
+    ga,
+    ppg: s.points / pj,
+    homeGF: gf,
+    homeGA: ga,
+    awayGF: gf,
+    awayGA: ga,
+    form: Math.min(1, (s.points / pj) / 3),
+    home: s.home,
+    away: s.away,
+    recent: s.recent
+  };
+}
+
+function strength(row, venue) {
+  const x = stats(row);
+  const leagueGF = media(tabla.map(r =>
+    r.stats.goalsFor / Math.max(1, r.stats.playedGames)
+  ));
+  const leagueGA = media(tabla.map(r =>
+    r.stats.goalsAgainst / Math.max(1, r.stats.playedGames)
+  ));
+
+  return {
+    attack: Math.max(45, Math.min(99, 72 + (x.gf - leagueGF) * 30)),
+    defense: Math.max(45, Math.min(99, 72 + (leagueGA - x.ga) * 30)),
+    form: Math.max(40, Math.min(99, 45 + x.form * 50)),
+    ppg: x.ppg
+  };
+}
+
+function populate() {
+  const opts = equipos.map(t =>
+    `<option value="${t.id}">${esc(t.name)}</option>`
+  ).join('');
+
+  $('local').innerHTML = opts;
+  $('visitante').innerHTML = opts;
+
+  if (equipos.length > 1) {
+    $('local').selectedIndex = 0;
+    $('visitante').selectedIndex = 1;
+  }
+
+  updateCrests();
+}
+
+function team(id) {
+  return equipos.find(t => String(t.id) === String(id));
+}
+
+function updateCrests() {
+  const l = team($('local').value);
+  const v = team($('visitante').value);
+
+  $('escudoLocal').src = l?.crest || '';
+  $('escudoVisitante').src = v?.crest || '';
+}
+
+function renderTable() {
+  $('tablaLigaBody').innerHTML = tabla.map(r => {
+    const t = r.team;
+    const n = t.name || '';
+
+    return `<tr class="${/valencia/i.test(n) ? 'fila-valencia' : ''}">
+      <td>${r.position}</td>
+      <td>${esc(n)}</td>
+      <td>${r.playedGames}</td>
+      <td>${r.won}</td>
+      <td>${r.draw}</td>
+      <td>${r.lost}</td>
+      <td>${r.goalsFor}</td>
+      <td>${r.goalsAgainst}</td>
+      <td>${r.goalsFor - r.goalsAgainst}</td>
+      <td><b>${r.points}</b></td>
+    </tr>`;
+  }).join('');
+
+  $('estadoTabla').textContent =
+    `Clasificación cargada · ${tabla.length} equipos`;
+}
+
+function metric(name, val, max = 100) {
+  return `<div class="metric">
+    <div class="metric-head">
+      <span>${name}</span><b>${val.toFixed(1)}</b>
+    </div>
+    <div class="metric-bar">
+      <span style="width:${Math.max(0, Math.min(100, val / max * 100))}%"></span>
+    </div>
+  </div>`;
+}
+
+function chart(label, a, b, max = 100) {
+  const pa = Math.max(0, Math.min(100, a / max * 100));
+  const pb = Math.max(0, Math.min(100, b / max * 100));
+
+  return `<div class="fila-graf">
+    <span>${label}</span>
+    <div class="barra-graf"><span style="width:${pa}%"></span></div>
+    <b>${a.toFixed(2)}</b>
+  </div>
+  <div class="fila-graf">
+    <span></span>
+    <div class="barra-graf azul"><span style="width:${pb}%"></span></div>
+    <b>${b.toFixed(2)}</b>
+  </div>`;
+}
+
+function analysis(diff, l, v) {
+  if (diff > 18)
+    return `${esc(l.team.name)} presenta mejores indicadores generales y juega en casa.`;
+
+  if (diff > 6)
+    return `${esc(l.team.name)} tiene una ventaja moderada según los datos disponibles.`;
+
+  if (diff < -18)
+    return `${esc(v.team.name)} presenta mejores indicadores generales, aunque juega fuera.`;
+
+  if (diff < -6)
+    return `${esc(v.team.name)} tiene una ventaja moderada según los datos disponibles.`;
+
+  return 'Los indicadores están igualados. El resultado es incierto.';
+}
+
+function prediccion() {
+  const lr = tabla.find(r =>
+    String(r.team.id) === String($('local').value)
+  );
+  const vr = tabla.find(r =>
+    String(r.team.id) === String($('visitante').value)
+  );
+
+  if (!lr || !vr || lr.team.id === vr.team.id) {
+    $('resultado').innerHTML =
+      '<section class="tarjeta"><p class="aviso">Selecciona dos equipos diferentes.</p></section>';
+    return;
+  }
+
+  const L = strength(lr, 'home');
+  const V = strength(vr, 'away');
+
+  const diff =
+    (L.form - V.form) * 18 +
+    (L.attack - V.attack) * 0.5 +
+    (L.defense - V.defense) * 0.35 +
+    4.5;
+
+  // Estimación orientativa, no garantía del resultado.
+  const pL = 100 / (1 + Math.exp(-diff / 18));
+  const pV = 100 / (1 + Math.exp(diff / 18));
+  const pD = Math.max(15, 100 - pL - pV);
+
+  const total = pL + pV + pD;
+  const localPct = pL / total * 100;
+  const visitaPct = pV / total * 100;
+  const empatePct = pD / total * 100;
+
+  const golesL = Math.max(0, Math.min(5,
+    Math.round(stats(lr).gf * (0.85 + localPct / 200))
+  ));
+  const golesV = Math.max(0, Math.min(5,
+    Math.round(stats(vr).gf * (0.85 + visitaPct / 200))
+  ));
+
+  let outcome = 'empate';
+  if (localPct > visitaPct && localPct > empatePct) outcome = 'local';
+  if (visitaPct > localPct && visitaPct > empatePct) outcome = 'visitante';
+
+  const resultText = outcome === 'local'
+    ? `🏠 ${esc(lr.team.name)} tiene mejores indicadores`
+    : outcome === 'visitante'
+      ? `✈️ ${esc(vr.team.name)} tiene mejores indicadores`
+      : '🤝 El análisis muestra un duelo equilibrado';
+
+  $('resultado').innerHTML = `
+    <section class="tarjeta resultado-caja">
+      <h2>${resultText}</h2>
+
+      <div class="marcador">
+        <div class="equipo-marcador">
+          <img src="${esc(lr.team.crest)}" alt="Escudo local">
+          <div>${esc(lr.team.name)}</div>
+        </div>
+        <div>${golesL} - ${golesV}</div>
+        <div class="equipo-marcador">
+          <img src="${esc(vr.team.crest)}" alt="Escudo visitante">
+          <div>${esc(vr.team.name)}</div>
+        </div>
+      </div>
+
+      <p class="confianza">Estimación estadística orientativa</p>
+
+      <div class="mini">
+        <b>🏠 Local: ${Math.round(localPct)}%</b>
+        <div class="barra"><div class="relleno local" style="width:${localPct}%"></div></div>
+        <p><b>🤝 Empate: ${Math.round(empatePct)}%</b></p>
+        <div class="barra"><div class="relleno empate" style="width:${empatePct}%"></div></div>
+        <p><b>✈️ Visitante: ${Math.round(visitaPct)}%</b></p>
+        <div class="barra"><div class="relleno visitante" style="width:${visitaPct}%"></div></div>
+      </div>
+
+      <div class="comparacion">
+        <div class="mini">
+          <h3>${esc(lr.team.name)}</h3>
+          ${metric('Ataque', L.attack)}
+          ${metric('Defensa', L.defense)}
+          ${metric('Puntos por partido', L.ppg, 3)}
+        </div>
+        <div class="mini">
+          <h3>${esc(vr.team.name)}</h3>
+          ${metric('Ataque', V.attack)}
+          ${metric('Defensa', V.defense)}
+          ${metric('Puntos por partido', V.ppg, 3)}
+        </div>
+      </div>
+
+      <div class="mini">
+        <h3>📈 Comparación estadística</h3>
+        ${chart('Ataque', L.attack, V.attack)}
+        ${chart('Defensa', L.defense, V.defense)}
+        ${chart('Goles por partido', stats(lr).gf, stats(vr).gf, 3)}
+      </div>
+
+      <div class="mini" style="margin-top:16px">
+        <h3>🧠 Análisis</h3>
+        <p>${analysis(diff, lr, vr)}</p>
+        <span class="badge">Solo análisis estadístico · Sin apuestas</span>
+      </div>
+
+      <p class="fuente">
+        Las estimaciones se calculan con la clasificación disponible.
+        No representan resultados garantizados ni estadísticas reales
+        específicas de local y visitante.
+      </p>
+    </section>`;
+
+  guardar({
+    local: lr.team.name,
+    visitante: vr.team.name,
+    golesLocal: golesL,
+    golesVisitante: golesV,
+    confidence: Math.round(Math.max(localPct, visitaPct, empatePct))
+  });
+}
+
+function guardar(p) {
+  try {
+    let h = JSON.parse(
+      localStorage.getItem('historialOraculoV2') || '[]'
+    );
+
+    h.unshift({
+      ...p,
+      fecha: new Date().toLocaleString('es-ES')
+    });
+
+    localStorage.setItem(
+      'historialOraculoV2',
+      JSON.stringify(h.slice(0, 10))
+    );
+
+    renderHistorial();
+  } catch (e) {
+    console.warn('No se pudo guardar el historial', e);
+  }
+}
+
+function renderHistorial() {
+  try {
+    const h = JSON.parse(
+      localStorage.getItem('historialOraculoV2') || '[]'
+    );
+
+    $('historial').innerHTML = h.length
+      ? h.map(x => `
+        <div class="historial-item">
+          <b>${esc(x.local)} ${x.golesLocal}-${x.golesVisitante} ${esc(x.visitante)}</b>
+          <br><small>${esc(x.fecha)} · Estimación ${x.confidence}%</small>
+        </div>`).join('')
+      : '<p class="estado">Todavía no hay análisis guardados.</p>';
+  } catch (e) {
+    $('historial').innerHTML =
+      '<p class="estado">No se pudo leer el historial.</p>';
+  }
+}
+
+async function cargar() {
+  $('estadoDatos').textContent = 'Cargando clasificación de LaLiga...';
+  $('estadoTabla').textContent = 'Cargando...';
+
+  try {
+    const r = await fetch('/api/standings');
+    const d = await r.json();
+
+    if (!r.ok) throw new Error(d.error || 'Error al cargar la API');
+
+    const clasificacion =
+      d.standings?.find(s => s.type === 'TOTAL')?.table || [];
+
+    if (!clasificacion.length) {
+      throw new Error('La API no devolvió equipos en la clasificación');
+    }
+
+    tabla = clasificacion.map(adaptarEquipo);
+
+    equipos = tabla.map(x => ({
+      id: x.team.id,
+      name: x.team.name,
+      crest: x.team.crest || ''
+    }));
+
+    populate();
+    renderTable();
+
+    $('estadoDatos').textContent =
+      `Datos cargados correctamente · ${equipos.length} equipos`;
+  } catch (e) {
+    console.error('Error al cargar LaLiga:', e);
+    $('estadoDatos').textContent =
+      'No se pudieron cargar los datos. Recarga la página.';
+    $('estadoTabla').textContent = e.message;
+  }
+}
+
+$('local').addEventListener('change', updateCrests);
+$('visitante').addEventListener('change', updateCrests);
+$('btnPredecir').addEventListener('click', prediccion);
+
+$('btnBorrar').addEventListener('click', () => {
+  localStorage.removeItem('historialOraculoV2');
+  renderHistorial();
+});
+
+renderHistorial();
+cargar();
 </script>
 </body>
 </html>
