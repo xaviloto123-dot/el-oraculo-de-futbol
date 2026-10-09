@@ -82,7 +82,14 @@ function prediccion(){
  guardar({local:lr.team.name,visitante:vr.team.name,golesLocal:scoreL,golesVisitante:scoreV,confidence});
 }
 function metric(name,val,max=100){return `<div class="metric"><div class="metric-head"><span>${name}</span><b>${val.toFixed(0)}</b></div><div class="metric-bar"><span style="width:${Math.max(0,Math.min(100,val/max*100))}%"></span></div></div>`}
-function analysis(diff,l,v,L,V){if(diff>18)return `${esc(l.team.name)} combina mejores indicadores de ataque, defensa y forma reciente, además del factor de jugar en casa.`;if(diff>6)return `${esc(l.team.name)} tiene una ventaja estadística moderada. La forma reciente y el rendimiento como local inclinan el análisis.`;if(diff<-18)return `${esc(v.team.name)} llega con una ventaja estadística clara en este modelo, aunque jugar fuera reduce parte de esa diferencia.`;if(diff<-6)return `${esc(v.team.name)} presenta mejores indicadores globales y de forma, pero el factor campo mantiene el duelo abierto.`;return 'Los indicadores están bastante igualados. La forma reciente y los datos de local/visitante no muestran una diferencia grande, por lo que el partido es especialmente incierto.`'}
+function analysis(diff,l,v,L,V){
+if(diff>18)return `${esc(l.team.name)} combina mejores indicadores de ataque, defensa y forma reciente, además del factor de jugar en casa.`;
+if(diff>6)return `${esc(l.team.name)} tiene una ventaja estadística moderada. La forma reciente y el rendimiento como local inclinan el análisis.`;
+if(diff<-18)return `${esc(v.team.name)} llega con una ventaja estadística clara en este modelo, aunque jugar fuera reduce parte de esa diferencia.`;
+if(diff<-6)return `${esc(v.team.name)} presenta mejores indicadores globales y de forma, pero el factor campo mantiene el duelo abierto.`;
+return 'Los indicadores están bastante igualados. La forma reciente y los datos de local/visitante no muestran una diferencia grande, por lo que el partido es especialmente incierto.';
+}
+
 function guardar(p){let h=JSON.parse(localStorage.getItem('historialOraculoV2')||'[]');h.unshift({...p,fecha:new Date().toLocaleString('es-ES')});localStorage.setItem('historialOraculoV2',JSON.stringify(h.slice(0,10)));renderHistorial()}
 function renderHistorial(){const h=JSON.parse(localStorage.getItem('historialOraculoV2')||'[]');$('historial').innerHTML=h.length?h.map(x=>`<div class="historial-item"><b>${esc(x.local)} ${x.golesLocal}-${x.golesVisitante} ${esc(x.visitante)}</b><br><small>${x.fecha} · Confianza ${x.confidence}%</small></div>`).join(''):'<p class="estado">Todavía no hay predicciones.</p>'}
 async function cargar(){try{const r=await fetch('/api/standings');const d=await r.json();if(!r.ok)throw new Error(d.error||'Error');tabla=d.standings?.find(s=>s.type==='TOTAL')?.table||[];
